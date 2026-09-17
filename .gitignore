@@ -1,10 +1,11 @@
+result
+result-*
+
 *.zip
 *.pyc
 kanji-colorize-*
 kanjivg
 kanji
-MANIFEST
-setup.py
 venv
 
 !/test/kanjivg

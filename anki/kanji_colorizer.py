@@ -42,11 +42,19 @@ from anki.hooks import addHook
 from aqt import mw
 from aqt.utils import showInfo, askUser
 from aqt.qt import *
-from .kanjicolorizer.colorizer import (KanjiVG, KanjiColorizer,
-                                      InvalidCharacterError)
+from .kanjicolorizer.colorizer import KanjiVG, KanjiColorizer, InvalidCharacterError
+
 
 class Config:
-    def __init__(self, kc, modelNameSubstring, srcField, dstFields, overwrite, diagrammedCharacters):
+    def __init__(
+        self,
+        kc,
+        modelNameSubstring,
+        srcField,
+        dstFields,
+        overwrite,
+        diagrammedCharacters,
+    ):
         self.kc = kc
         self.modelNameSubstring = modelNameSubstring
         self.srcField = srcField
@@ -55,34 +63,39 @@ class Config:
         self.diagrammedCharacters = diagrammedCharacters
 
     def model_is_correct_type(self, model):
-        '''
+        """
         Returns True if model has Japanese in the name and has both srcField
         and dstField; otherwise returns False
-        '''
+        """
         # Does the model name have Japanese in it?
-        model_name = model['name'].lower()
+        model_name = model["name"].lower()
         fields = mw.col.models.fieldNames(model)
-        any_destination_field_exist = any(field for field in self.dstFields if field in fields)
-        return (self.modelNameSubstring in model_name and
-                            self.srcField in fields and
-                            any_destination_field_exist)
-    
+        any_destination_field_exist = any(
+            field for field in self.dstFields if field in fields
+        )
+        return (
+            self.modelNameSubstring in model_name
+            and self.srcField in fields
+            and any_destination_field_exist
+        )
+
     def characters_to_colorize(self, s):
-        '''
+        """
         Given a string, returns a list of characters to colorize
 
         If the string mixes kanji and other characters, it will return
         only the kanji. Otherwise it will return all characters.
-        '''
-        if self.diagrammedCharacters == 'all':
+        """
+        if self.diagrammedCharacters == "all":
             return list(s)
-        elif self.diagrammedCharacters == 'kanji':
+        elif self.diagrammedCharacters == "kanji":
             return [c for c in s if is_kanji(c)]
         else:
             just_kanji = [c for c in s if is_kanji(c)]
             if len(just_kanji) >= 1:
                 return just_kanji
             return list(s)
+
 
 # Configuration
 
@@ -94,7 +107,7 @@ for config_dict in addon_config["configs"]:
     config = "--mode "
     config += config_dict["mode"]
     if config_dict.get("group-mode", False):
-      config += " --group-mode "
+        config += " --group-mode "
     config += " --saturation "
     config += str(config_dict["saturation"])
     config += " --value "
@@ -104,34 +117,39 @@ for config_dict in addon_config["configs"]:
     config += " --grid "
     config += config_dict["grid"]
 
-    modelNameSubstring   = 'japanese'
-    srcField             = 'Kanji'
-    dstFields            = ['Diagram']
-    overwrite            = True
+    modelNameSubstring = "japanese"
+    srcField = "Kanji"
+    dstFields = ["Diagram"]
+    overwrite = True
     diagrammedCharacters = "auto"
 
     # avoid errors due to invalid config
-    if 'model' in config_dict and type(config_dict['model']) is str:
-        modelNameSubstring = config_dict['model'].lower()
-    if 'src-field' in config_dict and type(config_dict['src-field']) is str:
-        srcField = config_dict['src-field']
-    if 'dst-field' in config_dict and type(config_dict['dst-field']) is str:
-        dstFields = [config_dict['dst-field']]
-    if 'dst-field' in config_dict and type(config_dict['dst-field']) is list:
-        dstFields = config_dict['dst-field']
-    if 'overwrite-dest' in config_dict and type(config_dict['overwrite-dest']) is bool:
-        overwrite = config_dict['overwrite-dest']
-    if 'diagrammed-characters' in config_dict and type(config_dict['diagrammed-characters']) is str:
-        diagrammedCharacters = config_dict['diagrammed-characters']
+    if "model" in config_dict and type(config_dict["model"]) is str:
+        modelNameSubstring = config_dict["model"].lower()
+    if "src-field" in config_dict and type(config_dict["src-field"]) is str:
+        srcField = config_dict["src-field"]
+    if "dst-field" in config_dict and type(config_dict["dst-field"]) is str:
+        dstFields = [config_dict["dst-field"]]
+    if "dst-field" in config_dict and type(config_dict["dst-field"]) is list:
+        dstFields = config_dict["dst-field"]
+    if "overwrite-dest" in config_dict and type(config_dict["overwrite-dest"]) is bool:
+        overwrite = config_dict["overwrite-dest"]
+    if (
+        "diagrammed-characters" in config_dict
+        and type(config_dict["diagrammed-characters"]) is str
+    ):
+        diagrammedCharacters = config_dict["diagrammed-characters"]
 
     kc = KanjiColorizer(config)
-    configs[config_dict['model']] = Config(kc, modelNameSubstring, srcField, dstFields, overwrite, diagrammedCharacters)
+    configs[config_dict["model"]] = Config(
+        kc, modelNameSubstring, srcField, dstFields, overwrite, diagrammedCharacters
+    )
 
 
 def is_kanji(c):
-    '''
+    """
     Boolean indicating if the character is in the kanji unicode range
-    '''
+    """
     return ord(c) >= 19968 and ord(c) <= 40879
 
 
@@ -140,19 +158,23 @@ def addKanji(note, flag=False, currentFieldIndex=None):
     if not config:
         return flag
 
-    '''
+    """
     Checks to see if a kanji should be added, and adds it if so.
-    '''
+    """
     if not config.model_is_correct_type(note.model()):
         return flag
 
-    if currentFieldIndex != None: # We've left a field
+    if currentFieldIndex != None:  # We've left a field
         # But it isn't the relevant one
-        if note.model()['flds'][currentFieldIndex]['name'] != config.srcField:
+        if note.model()["flds"][currentFieldIndex]["name"] != config.srcField:
             return flag
 
     srcTxt = mw.col.media.strip(note[config.srcField])
-    existingDstFields = [field for field in config.dstFields if field in mw.col.models.fieldNames(note.model())]
+    existingDstFields = [
+        field
+        for field in config.dstFields
+        if field in mw.col.models.fieldNames(note.model())
+    ]
 
     note_edited = False
     characters = config.characters_to_colorize(str(srcTxt))
@@ -161,7 +183,7 @@ def addKanji(note, flag=False, currentFieldIndex=None):
 
     for dstField, character in zip(existingDstFields, characters):
         oldDst = note[dstField]
-        dst=''
+        dst = ""
 
         # write to file; anki works in the media directory by default
         try:
@@ -170,14 +192,14 @@ def addKanji(note, flag=False, currentFieldIndex=None):
             # silently ignore non-Japanese characters
             continue
         if config.kc:
-            char_svg = config.kc.get_colored_svg(character).encode('utf_8')
+            char_svg = config.kc.get_colored_svg(character).encode("utf_8")
             anki_fname = mw.col.media.writeData(filename, char_svg)
             dst += '<img src="{!s}">'.format(anki_fname)
 
-        if oldDst != '' and not config.overwrite:
+        if oldDst != "" and not config.overwrite:
             continue
 
-        if dst != oldDst and dst != '':
+        if dst != oldDst and dst != "":
             note[dstField] = dst
             # if we're editing an existing card, flush the changes
             if note.id != 0:
@@ -186,23 +208,25 @@ def addKanji(note, flag=False, currentFieldIndex=None):
 
     # Put leftover characters in the last destination. However if it isn't empty and overwrite is false,
     # don't write any characters to it.
-    if len(characters) > len(existingDstFields) and (last_destination_field_contents == '' or config.overwrite):
+    if len(characters) > len(existingDstFields) and (
+        last_destination_field_contents == "" or config.overwrite
+    ):
         dstField = existingDstFields[-1]
         oldDst = note[dstField]
         dst = note[dstField]
 
-        for character in characters[len(existingDstFields):]:
+        for character in characters[len(existingDstFields) :]:
             # write to file; anki works in the media directory by default
             try:
                 filename = KanjiVG(character).ascii_filename
             except InvalidCharacterError:
                 # silently ignore non-Japanese characters
                 continue
-            char_svg = config.kc.get_colored_svg(character).encode('utf_8')
+            char_svg = config.kc.get_colored_svg(character).encode("utf_8")
             anki_fname = mw.col.media.writeData(filename, char_svg)
             dst += '<img src="{!s}">'.format(anki_fname)
 
-        if dst != oldDst and dst != '':
+        if dst != oldDst and dst != "":
             note[dstField] = dst
             # if we're editing an existing card, flush the changes
             if note.id != 0:
@@ -214,21 +238,26 @@ def addKanji(note, flag=False, currentFieldIndex=None):
 
 # Add a colorized kanji to a Diagram whenever leaving a Kanji field
 
+
 def onFocusLost(flag, note, currentFieldIndex):
     return addKanji(note, flag, currentFieldIndex)
 
-addHook('editFocusLost', onFocusLost)
+
+addHook("editFocusLost", onFocusLost)
 
 
 # menu item to regenerate all
+
 
 def regenerate_all():
     for _, config in configs.items():
         # Find the models that have the right name and fields; faster than
         # checking every note
-        if not askUser("Do you want to regenerate all kanji diagrams? "
-                       'This may take some time and will overwrite the '
-                       'destination Diagram field(s).'):
+        if not askUser(
+            "Do you want to regenerate all kanji diagrams? "
+            "This may take some time and will overwrite the "
+            "destination Diagram field(s)."
+        ):
             return
 
         models = [m for m in mw.col.models.all() if config.model_is_correct_type(m)]
@@ -239,29 +268,40 @@ def regenerate_all():
 
     showInfo("Done regenerating colorized kanji diagrams!")
 
+
 def generate_for_new():
     for _, config in configs.items():
-        if not askUser("This option will generate diagrams for notes with "
-                    "empty {} field(s) only."
-                    "Proceed?".format(', '.join(config.dstFields))):
+        if not askUser(
+            "This option will generate diagrams for notes with "
+            "empty {} field(s) only."
+            "Proceed?".format(", ".join(config.dstFields))
+        ):
             return
 
-        model_ids = [mid for mid in mw.col.models.ids() if config.model_is_correct_type(mw.col.models.get(mid))]
+        model_ids = [
+            mid
+            for mid in mw.col.models.ids()
+            if config.model_is_correct_type(mw.col.models.get(mid))
+        ]
         if not model_ids:
-            showInfo("Can not find any relevant models. Make sure model, src-field, and dst-field are set correctly in your config.")
+            showInfo(
+                "Can not find any relevant models. Make sure model, src-field, and dst-field are set correctly in your config."
+            )
             return
 
         # Generate search string in the format
         #    (mid:123 or mid:456) Kanji:_* Diagram:
-        search_str = '({}) {}:_* {}'.format(
-        ' or '.join(('mid:'+str(mid) for mid in model_ids)),
-        config.srcField,
-        ' '.join([f + ':' for f in config.dstFields]))
+        search_str = "({}) {}:_* {}".format(
+            " or ".join(("mid:" + str(mid) for mid in model_ids)),
+            config.srcField,
+            " ".join([f + ":" for f in config.dstFields]),
+        )
         # Find the notes
         for note_id in mw.col.findNotes(search_str):
             addKanji(mw.col.getNote(note_id))
 
     showInfo("Done generating colorized kanji diagrams!")
+
 
 # add menu items
 submenu = mw.form.menuTools.addMenu("Kanji Colorizer")

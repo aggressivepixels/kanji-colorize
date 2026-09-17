@@ -18,6 +18,22 @@
         "type": "github"
       }
     },
+    "kanjivg": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788945536,
+        "narHash": "sha256-zX5fntHJsKdC8+lN7gNhyI8s8Ll0tfPSQ3668dmvLGU=",
+        "owner": "KanjiVG",
+        "repo": "kanjivg",
+        "rev": "422b5538595676da918c288a4230cb5e22a1ee7e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "KanjiVG",
+        "repo": "kanjivg",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1780365719,
@@ -37,6 +53,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "kanjivg": "kanjivg",
         "nixpkgs": "nixpkgs"
       }
     },
